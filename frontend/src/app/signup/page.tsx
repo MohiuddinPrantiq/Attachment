@@ -10,9 +10,11 @@ import Button from "../atoms/Button";
 
 export default function SignupPage() {
   const searchParams = useSearchParams();
-  const role = searchParams?.get("role") === "1" ? "Student" : "Teacher";
+  const roleType = searchParams?.get("role") === "1" ? "Student" : "Teacher";
+  const role = searchParams?.get("role")
 
   const [formData, setFormData] = useState({
+    role: role,
     name: "",
     email: "",
     academicId: "",
@@ -29,18 +31,38 @@ export default function SignupPage() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    
     const { name, email, academicId, department, phone, batch, password } = formData;
     if (!name || !email || !academicId || !department || !phone || !batch || !password) {
       alert("Please fill in all fields.");
       return;
     }
-    console.log(formData)
-    // Add account creation logic here
-    //alert("Account created successfully!");
-    //router.push("/login");
+
+    try {
+      const response = await fetch("http://localhost:8080/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("User created successfully:", result);
+        router.push("/login");
+      } else {
+        const error = await response.json();
+        console.error("Failed to create user:", error);
+        alert("Failed to create user. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error occurred:", error);
+      alert("An error occurred while creating the user.");
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
@@ -58,7 +80,7 @@ export default function SignupPage() {
                 <Label text="Role"/>
                 <input
                   type="text"
-                  value={role}
+                  value={roleType}
                   readOnly
                   className="w-full px-4 py-3 bg-gray-100 rounded-lg shadow-md border border-gray-200 text-black focus:outline-none"
                 />
@@ -88,7 +110,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-              <Label text={`${role}ID`}/>
+              <Label text={`${roleType}ID`}/>
                 <Input
                   type="text"
                   name="academicId"

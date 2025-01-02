@@ -10,13 +10,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      alert("Please fill in both email and password.");
-      return;
+  const handleLogin = async () => {
+    console.log(email,password);
+    try {
+      const response = await fetch("http://localhost:8080/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      console.log(response.ok)
+
+      if (!response.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      let userData = await response.json();
+      console.log(userData);
+
+      router.push(`/profile?data=${encodeURIComponent(JSON.stringify(userData))}`);
+      
+    } catch (err) {
+      throw new Error("Something went wrong. Try again later!");
     }
-    
-    alert(`Logging in with Email: ${email}`);
   };
 
   return (
@@ -85,3 +100,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
